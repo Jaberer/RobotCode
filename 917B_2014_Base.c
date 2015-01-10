@@ -250,11 +250,9 @@ task claw()
 		}
 }
 
-
 task arm()
 {
 	  float armPower = 80; //Power values
-		float armPos; 			 //Potentiometer values
 		int armDir = 0;
 		while(true)
 		{
@@ -264,9 +262,42 @@ task arm()
 				armDir=vexRT[Btn5U];
 			else
 				armDir = vexRT[Btn5U] - vexRT[Btn5D];
-				motor[armFrontLeft] = motor[armBackLeft] = armDir * armPower;
-				motor[armFrontRight] = motor[armBackRight] = armDir * armPower;
+			motor[armFrontLeft] = motor[armBackLeft] = armDir * armPower;
+			motor[armFrontRight] = motor[armBackRight] = armDir * armPower;
 		}
+}
+
+task arm2()
+{
+	while(true)
+	{
+		if(!tomato){
+			int LiftPower = 0;
+
+			if((vexRT[Btn5U] == 0 && vexRT[Btn5D] == 0) && (SensorValue[RightArmAngle] >= (BUMP)))
+				LiftPower = hold;
+			else if(SensorValue[RightArmAngle] <= LOW) //LOW Safety Limit
+				LiftPower = vexRT[Btn5U]*127 - vexRT[Btn5D]*0; // can only go up now
+			else // Full Manual
+				LiftPower = vexRT[Btn5U]*127 - vexRT[Btn5D]*127;
+
+			if(vexRT[Btn8D] == 1) // left bottom button to set to barrier height, may need testing
+			{
+				while(SensorValue[RightArmAngle] != BARRIER)
+				{
+					if(SensorValue[RightArmAngle] < BARRIER)
+						LiftPower = 127;
+					break;
+					if(SensorValue[RightArmAngle] > BARRIER)
+						LiftPower = -127;
+					break;
+				}
+			}
+
+			motor[RightArm] = motor[LeftArm] = LiftPower;
+		}
+
+	}
 }
 
 // TODO: IMPLEMENT THRESHOLD VALUES
