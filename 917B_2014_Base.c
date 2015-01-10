@@ -221,7 +221,12 @@ void pre_auton()
 
 task autonomous()
 {
+	float clawPower = 100;
+	motor[clawMotor] = clawPower;
 	deploy();
+	motor[clawMotor] = 0;
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
