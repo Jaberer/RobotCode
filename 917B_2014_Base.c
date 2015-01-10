@@ -34,7 +34,7 @@ int ARM_TOP_HOLD_POWER = 10; //10
 
 //Arm Angles
 //float MAX_BOT = 3000, MIN_BOT = 1390; // keep three sigfigs
-float MAX_TOP = 2950, MIN_TOP = 950;
+float MAX_TOP = 2800, MIN_TOP = 970;
 // Date is 6th of Dec and values are 1300, 1300, 2900 and 1300
 // 10 of Jan: 2950 and 950
 
@@ -151,28 +151,13 @@ void deploy() // 10 Jan 2015
 
 void powerClaw(bool clench)
 {
-	float instantPower = 70;
-	float passivePower = 30;
-	float clawMotorPower = 64;
-	int waitTime = 500;
-	int instantToPassiveDelay = 50;
-	int unclenchDelay = 20;
-
-	while(true)
-	{
-		if (clench)
-		{ //clench
-			motor[clawMotor]=instantPower;
-			wait1Msec(instantToPassiveDelay);
-			motor[clawMotor]=passivePower;
-		}
-		else
-		{ //unclench and release
-			motor[clawMotor]=-instantPower;
-			wait1Msec(unclenchDelay);
-			motor[clawMotor]=0;
-		}
-	}
+		float clawPower = 100;
+		float clawHold = 10;
+			if (!clench){ //unclench and release
+				motor[clawMotor]=clawPower;
+			}
+			else
+				motor[clawMotor]=-clawHold;
 }
 
 void liftSkyrise(float y, float potValue, float power = 30)
@@ -221,12 +206,25 @@ void pre_auton()
 
 task autonomous()
 {
-	float clawPower = 100;
-	motor[clawMotor] = clawPower;
-	deploy();
-	motor[clawMotor] = 0;
 
-
+  //deploy();
+  //wait10Msec(150);
+  forwardNoRamp(-1, 0, 200);
+  wait10Msec(150);
+  deploy();
+  wait10Msec(150);
+  forwardRamp(0, -1, 200000);
+  /*
+  wait10Msec(10);
+  powerClaw(false);
+  wait10Msec(50);
+  forwardRamp(0, 1, 250000);
+  wait10Msec(15);
+  powerClaw(true);
+  liftArm(1400);
+  forwardRamp(0, -1, 150000);
+  turnRamp(-1, 20000);
+*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -246,7 +244,7 @@ task tensionClaw()
 				motor[clawMotor]=clawPower;
 			}
 			else
-				motor[clawMotor]=0;
+				motor[clawMotor]=-10;
 		}
 }
 
@@ -406,7 +404,7 @@ task autonTest()
 task usercontrol()
 {
 
-		StartTask(claw);
+		StartTask(tensionClaw);
 		StartTask(drive);
 		StartTask(arm2);
 
