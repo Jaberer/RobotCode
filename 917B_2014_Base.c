@@ -32,10 +32,14 @@ int ARM_TOP_UP = 2860;
 int ARM_TOP_HOLD = 1500;
 int ARM_TOP_HOLD_POWER = 10; //10
 
+//Arm Angles
 //float MAX_BOT = 3000, MIN_BOT = 1390; // keep three sigfigs
 float MAX_TOP = 2950, MIN_TOP = 950;
 // Date is 6th of Dec and values are 1300, 1300, 2900 and 1300
 // 10 of Jan: 2950 and 950
+
+int armHold = 20;
+
 /////////////////////////////////////////////////////////////////////////////////////////
 //                                      Functions																			 //
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -224,6 +228,23 @@ task autonomous()
 //                                 User Control Task																	//
 ////////////////////////////////////////////////////////////////////////////////////////
 
+
+task tensionClaw()
+{
+		float clawPower = 100;
+
+		while(true)
+		{
+			if (vexRT[Btn6U]==1){ //clench
+			}
+			if (vexRT[Btn6D]==1){ //unclench and release
+				motor[clawMotor]=clawPower;
+			}
+			else
+				motor[clawMotor]=0;
+		}
+}
+
 task claw()
 {
 		float instantPower = 70;
@@ -267,34 +288,25 @@ task arm()
 		}
 }
 
+bool tomato = false;
+
 task arm2()
 {
 	while(true)
 	{
-		if(!tomato){
+		if(!tomato)
+		{
 			int LiftPower = 0;
 
-			if((vexRT[Btn5U] == 0 && vexRT[Btn5D] == 0) && (SensorValue[RightArmAngle] >= (BUMP)))
-				LiftPower = hold;
-			else if(SensorValue[RightArmAngle] <= LOW) //LOW Safety Limit
+			if((vexRT[Btn5U] == 0 && vexRT[Btn5D] == 0) && (SensorValue[topPot] < MIN_TOP))
+				LiftPower = armHold;
+			else if(SensorValue[topPot] <= MIN_TOP) //LOW Safety Limit
 				LiftPower = vexRT[Btn5U]*127 - vexRT[Btn5D]*0; // can only go up now
 			else // Full Manual
 				LiftPower = vexRT[Btn5U]*127 - vexRT[Btn5D]*127;
 
-			if(vexRT[Btn8D] == 1) // left bottom button to set to barrier height, may need testing
-			{
-				while(SensorValue[RightArmAngle] != BARRIER)
-				{
-					if(SensorValue[RightArmAngle] < BARRIER)
-						LiftPower = 127;
-					break;
-					if(SensorValue[RightArmAngle] > BARRIER)
-						LiftPower = -127;
-					break;
-				}
-			}
-
-			motor[RightArm] = motor[LeftArm] = LiftPower;
+			motor[armFrontRight] = motor[armBackRight]
+				= motor[armFrontLeft] = motor[armBackLeft] = LiftPower;
 		}
 
 	}
@@ -391,7 +403,7 @@ task usercontrol()
 
 		StartTask(claw);
 		StartTask(drive);
-		StartTask(arm);
+		StartTask(arm2);
 
 		//StartTask(autonTest);
 }
